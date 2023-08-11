@@ -1,0 +1,114 @@
+def print_board(board):
+    for row in board:
+        print(" | ".join(row))
+        print("-" * 9)
+
+def evaluate(board):
+    for row in board:
+        if all(cell == "X" for cell in row):
+            return 10
+        elif all(cell == "O" for cell in row):
+            return -10
+
+    for col in range(3):
+        if all(board[row][col] == "X" for row in range(3)):
+            return 10
+        elif all(board[row][col] == "O" for row in range(3)):
+            return -10
+
+    if all(board[i][i] == "X" for i in range(3)) or all(board[i][2 - i] == "X" for i in range(3)):
+        return 10
+    elif all(board[i][i] == "O" for i in range(3)) or all(board[i][2 - i] == "O" for i in range(3)):
+        return -10
+
+    return 0
+
+def is_moves_left(board):
+    return any(cell == " " for row in board for cell in row)
+
+def minimax_alpha_beta(board, depth, is_maximizing, alpha, beta):
+    score = evaluate(board)
+
+    if score == 10:
+        return score - depth
+    if score == -10:
+        return score + depth
+    if not is_moves_left(board):
+        return 0
+
+    if is_maximizing:
+        best_score = float("-inf")
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == " ":
+                    board[i][j] = "X"
+                    best_score = max(best_score, minimax_alpha_beta(board, depth + 1, False, alpha, beta))
+                    board[i][j] = " "
+                    alpha = max(alpha, best_score)
+                    if beta <= alpha:
+                        break
+        return best_score
+    else:
+        best_score = float("inf")
+        for i in range(3):
+            for j in range(3):
+                if board[i][j] == " ":
+                    board[i][j] = "O"
+                    best_score = min(best_score, minimax_alpha_beta(board, depth + 1, True, alpha, beta))
+                    board[i][j] = " "
+                    beta = min(beta, best_score)
+                    if beta <= alpha:
+                        break
+        return best_score
+
+def find_best_move_alpha_beta(board):
+    best_move = None
+    best_value = float("-inf")
+    alpha = float("-inf")
+    beta = float("inf")
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == " ":
+                board[i][j] = "X"
+                move_value = minimax_alpha_beta(board, 0, False, alpha, beta)
+                board[i][j] = " "
+                if move_value > best_value:
+                    best_value = move_value
+                    best_move = (i, j)
+                alpha = max(alpha, best_value)
+    return best_move
+
+def play_tic_tac_toe_alpha_beta():
+    board = [[" " for _ in range(3)] for _ in range(3)]
+    current_player = "X"
+
+    while True:
+        print_board(board)
+        if current_player == "X":
+            row, col = map(int, input("Enter your move (row col): ").split())
+            if board[row][col] != " ":
+                print("Invalid move. Try again.")
+                continue
+            board[row][col] = "X"
+        else:
+            print("AI's move:")
+            best_move = find_best_move_alpha_beta(board)
+            board[best_move[0]][best_move[1]] = "X"
+
+        if evaluate(board) == 10:
+            print_board(board)
+            print("Player X wins!")
+            break
+        elif evaluate(board) == -10:
+            print_board(board)
+            print("Player O wins!")
+            break
+        elif not is_moves_left(board):
+            print_board(board)
+            print("It's a draw!")
+            break
+
+        current_player = "O" if current_player == "X" else "X"
+
+
+play_tic_tac_toe_alpha_beta()
