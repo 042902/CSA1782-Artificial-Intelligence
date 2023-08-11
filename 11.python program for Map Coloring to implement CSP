@@ -1,0 +1,63 @@
+def is_consistent(assignment, variable, value, constraints):
+    for constraint in constraints:
+        if variable in constraint['scope']:
+            related_var = [v for v in constraint['scope'] if v != variable][0]
+            if related_var in assignment and not constraint['func'](value, assignment[related_var]):
+                return False
+    return True
+
+def backtrack(assignment, variables, domains, constraints):
+    if len(assignment) == len(variables):
+        return assignment
+    
+    variable = [var for var in variables if var not in assignment][0]
+    for value in domains[variable]:
+        if is_consistent(assignment.copy(), variable, value, constraints):
+            assignment[variable] = value
+            result = backtrack(assignment, variables, domains, constraints)
+            if result is not None:
+                return result
+            assignment.pop(variable)
+    return None
+
+def map_coloring(variables, domains, constraints):
+    assignment = {}
+    return backtrack(assignment, variables, domains, constraints)
+
+
+variables = ['WA', 'NT', 'Q', 'NSW', 'V', 'SA', 'T']
+domains = {
+    'WA': ['R', 'G', 'B'],
+    'NT': ['R', 'G', 'B'],
+    'Q': ['R', 'G', 'B'],
+    'NSW': ['R', 'G', 'B'],
+    'V': ['R', 'G', 'B'],
+    'SA': ['R', 'G', 'B'],
+    'T': ['R', 'G', 'B']
+}
+
+def different_colors(color1, color2):
+    return color1 != color2
+
+constraints = [
+    {'scope': ['WA', 'NT'], 'func': different_colors},
+    {'scope': ['WA', 'SA'], 'func': different_colors},
+    {'scope': ['NT', 'SA'], 'func': different_colors},
+    {'scope': ['NT', 'Q'], 'func': different_colors},
+    {'scope': ['SA', 'Q'], 'func': different_colors},
+    {'scope': ['SA', 'NSW'], 'func': different_colors},
+    {'scope': ['SA', 'V'], 'func': different_colors},
+    {'scope': ['Q', 'NSW'], 'func': different_colors},
+    {'scope': ['NSW', 'V'], 'func': different_colors}
+]
+
+
+solution = map_coloring(variables, domains, constraints)
+
+
+if solution:
+    print("Map Coloring Solution:")
+    for variable, color in solution.items():
+        print(f"{variable}: {color}")
+else:
+    print("No solution found.")
